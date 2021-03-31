@@ -27,7 +27,7 @@ The below table shows the results of running a number of tests with the above se
 | 50    | 6977 | 7.17        | 3.5     | 109         |
 | 100   | 7345 | 13.6        | 6.8     | 196         |
 
-As an initial conclusion we can see that more concurrent connections increase the TPS (Transactions per second) value, but negatively impacts the latency as this also increases. Increasing the concurrency has quickly diminishing returns, 20 and 50 simultaneous connections have TPS values within a few hundred transactions but these transactions take on average more than twice as long. The maximum latency also increases greatly with higher concurrency. This could cause user experience or more serious problems depending on the use case.
+As an initial conclusion we can see that more concurrent connections increases the TPS (Transactions per second) value, but negatively impacts the latency as this also increases. Increasing the concurrency has quickly diminishing returns, 20 and 50 simultaneous connections have TPS values within a few hundred transactions but these transactions take on average more than twice as long. The maximum latency also increases greatly with higher concurrency. This could cause user experience or more serious problems depending on the use case.
 
 From the second test (20 connections) CPU usage was already around 95% on 3 cores and slightly lower on the 4th. This utilisation did not increase much with the subsequent tests and it is for this reason that I believe the TPS figures do not increase significatly after 20 connections. However, a failed request was not detected at any point during the tests so I believe I have yet to push the system to it's performance limit. 
 

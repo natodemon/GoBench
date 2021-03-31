@@ -21,8 +21,8 @@ Concurrent connections decrease latency and increase TPS (Transactions per secon
 
 
 | Conns | TPS | Avg Latency | Std Dev | Max Latency |
-| :---: |
-| 20
-| 30
-| 50
-| 80
+| :---: | :-: | :---------: | :-----: | :---------: |
+| 20    |     |             |         |             |
+| 30    |     |             |         |             |
+| 50    |     |             |         |             |
+| 80    |     |             |         |             |

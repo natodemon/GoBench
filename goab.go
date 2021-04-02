@@ -11,12 +11,22 @@ type ReqResult struct {
 	errorOccured bool
 }
 
+var requests = make(chan int)
+
 var testResults = make(chan ReqResult)
 
 func httpWorker(wg *sync.WaitGroup, url string) {
 	// Makes simple http request using http.get
 	// Measures time for request (find this method) & records in result channel struct
 	// Also record if error occured or not
+
+}
+
+func allocReqs(int reqs) {
+	for i := 0; i < reqs; i++ {
+		reqIndex := i
+		requests <- reqIndex
+	}
 }
 
 func main() {
@@ -33,7 +43,15 @@ func main() {
 
 	var hostUrl string = posArgs[0]
 
+	allocReqs(*noOfReqs)
+
 	var wg sync.WaitGroup
+	for i := 0; i < *concurrentCons; i++ {
+		wg.Add(1)
+		go httpWorker(&wg, hostUrl)
+	}
+	wg.Wait()
+	close(testResults)
 
 	// Create a waitgroup with (-c) number of httpworkers
 	// Will need form of counting total requests, use basic struct or array/slice

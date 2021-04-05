@@ -37,4 +37,7 @@ Having performed more granular tests, I believe the optimum concurrency (-c) val
 
 ### Implementation
 
-Fill in here.
+The aim of this task was to replicate the essential functionality of Apache Bench with an equivalent program written in Go. This program would perform the same tests as ab and monitor the same parameters to allow for a comparison of the two solutions.
+
+### Findings & Comparison
+

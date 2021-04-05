@@ -24,13 +24,7 @@ var reqUrl string
 var totalReqs int
 
 func httpWorker(wg *sync.WaitGroup, id int) {
-	// Makes simple http request using http.get
-	// Measures time for request (find this method) & records in result channel struct
-	// Also record if error occured or not
-
 	for curReq := range requestsChan {
-		//for len(resultChan) <= totalReqs {
-
 		var resRecord ReqResult
 
 		tempStart := time.Now()
@@ -42,26 +36,20 @@ func httpWorker(wg *sync.WaitGroup, id int) {
 
 		body, _ := io.ReadAll(res.Body)
 		if body == nil {
-			println("This is pointless")
+			println("")
 		}
 		res.Body.Close()
-		timeEnd := time.Now()
 
+		timeEnd := time.Now()
 		resRecord.requestTime = timeEnd.Sub(tempStart)
 		resRecord.reqIndex = curReq
-
-		//fmt.Printf("WorkerID: %d | Request No: %d \n", id, curReq)
-		//fmt.Println("Request number:", curReq)
-		//fmt.Println("Req time:", resRecord.requestTime)
-
 		resultChan <- resRecord
-
 	}
 	wg.Done()
 }
 
 func parseResults(done chan bool, showErrors bool) {
-	var errCount int = 0
+	var errCount int
 	var latencySum time.Duration
 
 	for reqInf := range resultChan {
@@ -86,9 +74,8 @@ func allocReqs(reqs int) {
 		reqIndex := i
 		requestsChan <- reqIndex
 	}
-	//println("Allocation complete")
 	close(requestsChan)
-} // Creates channel of 'requests' that httpworkers consume
+}
 
 func main() {
 	concurrentCons := flag.Int("c", 1, "concurrent requests")
@@ -97,52 +84,32 @@ func main() {
 
 	flag.Parse()
 
-	posArgs := os.Args[len(os.Args)-1]
+	positionalArg := os.Args[len(os.Args)-1]
 
-	//fmt.Println(posArgs)
-
-	if len(posArgs) < 1 {
+	if len(positionalArg) < 1 {
 		log.Fatal(errors.New("no URL input"))
 	}
 
-	reqUrl = posArgs
+	reqUrl = positionalArg
 	totalReqs = *noOfReqs
 
-	//println("Allocation started")
 	go allocReqs(*noOfReqs)
 
-	// concRequests := make(chan struct{}, *noOfReqs)
-	// for i := 0; i < *noOfReqs; i++ {
-
-	// }
-
 	done := make(chan bool)
-	var wg sync.WaitGroup
-
 	go parseResults(done, *showErrsPtr)
 
+	var wg sync.WaitGroup
 	mainStart := time.Now()
-
 	for i := 0; i < *concurrentCons; i++ {
 		wg.Add(1)
-		//fmt.Printf("Worker %d initiated\n", i)
 		go httpWorker(&wg, i)
 	}
 	wg.Wait()
-	//fmt.Println("Closing channel")
 	close(resultChan)
 
-	//go parseResults(done)
 	<-done
 	endTime := time.Since(mainStart)
 
 	fmt.Println("Total time:", endTime)
 	fmt.Printf("TPS: %.2f \n", (float64(totalReqs) / endTime.Seconds()))
-
-	// Create a waitgroup with (-c) number of httpworkers
-	// Will need form of counting total requests, use basic struct or array/slice
-	// httpworkers will continue to make requests until total is exhausted
-	// Record total time, calculate average latency and TPS
-	// Display this to terminal
-
 }

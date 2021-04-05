@@ -19,7 +19,7 @@ type ReqResult struct {
 }
 
 var resultChan = make(chan ReqResult, 200)
-var requestsChan = make(chan int)
+var requestsChan = make(chan int, 10)
 var reqUrl string
 var totalReqs int
 

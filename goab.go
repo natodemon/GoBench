@@ -19,18 +19,17 @@ type ReqResult struct {
 }
 
 var resultChan = make(chan ReqResult, 200)
-var requestsChan = make(chan int, 10)
+var requestsChan = make(chan int, 200)
 var reqUrl string
 var totalReqs int
 
-func httpWorker(wg *sync.WaitGroup) {
+func httpWorker(wg *sync.WaitGroup, id int) {
 	// Makes simple http request using http.get
 	// Measures time for request (find this method) & records in result channel struct
 	// Also record if error occured or not
 
 	for curReq := range requestsChan {
 		//for len(resultChan) <= totalReqs {
-		//fmt.Println("Channel length:", len(resultChan))
 
 		var resRecord ReqResult
 
@@ -51,6 +50,7 @@ func httpWorker(wg *sync.WaitGroup) {
 		resRecord.requestTime = timeEnd.Sub(tempStart)
 		resRecord.reqIndex = curReq
 
+		//fmt.Printf("WorkerID: %d | Request No: %d \n", id, curReq)
 		//fmt.Println("Request number:", curReq)
 		//fmt.Println("Req time:", resRecord.requestTime)
 
@@ -125,7 +125,8 @@ func main() {
 
 	for i := 0; i < *concurrentCons; i++ {
 		wg.Add(1)
-		go httpWorker(&wg)
+		//fmt.Printf("Worker %d initiated\n", i)
+		go httpWorker(&wg, i)
 	}
 	wg.Wait()
 	//fmt.Println("Closing channel")

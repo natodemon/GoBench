@@ -29,7 +29,7 @@ func httpWorker(wg *sync.WaitGroup) {
 	for curReq := range requestsChan {
 		//for len(resultChan) <= totalReqs {
 		//fmt.Println("Channel length:", len(resultChan))
-		fmt.Println("Request number:", curReq)
+
 		var resRecord ReqResult
 		req, reqErr := http.NewRequest("GET", reqUrl, nil)
 		if reqErr != nil {
@@ -42,8 +42,10 @@ func httpWorker(wg *sync.WaitGroup) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		resRecord.requestTime = time.Since(tempStart)
+		timeEnd := time.Now()
+		resRecord.requestTime = timeEnd.Sub(tempStart)
 
+		fmt.Println("Request number:", curReq)
 		fmt.Println("Req time:", resRecord.requestTime)
 
 		resultChan <- resRecord
@@ -52,8 +54,7 @@ func httpWorker(wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func parseResults(done chan bool) {
-	time.Sleep(500 * time.Millisecond)
+func parseResults(done chan bool, showErrors bool) {
 	var errCount int = 0
 	var latencySum time.Duration
 
@@ -67,7 +68,9 @@ func parseResults(done chan bool) {
 	avgLatency := latencySum / time.Duration(totalReqs)
 
 	fmt.Println("Avg latency (ms) over", totalReqs, ":", avgLatency)
-	fmt.Println("Total error count:", errCount)
+	if showErrors {
+		fmt.Println("Total error count:", errCount)
+	}
 
 	done <- true
 }
@@ -110,7 +113,7 @@ func main() {
 	done := make(chan bool)
 	var wg sync.WaitGroup
 
-	go parseResults(done)
+	go parseResults(done, *showErrsPtr)
 
 	mainStart := time.Now()
 
@@ -125,10 +128,6 @@ func main() {
 	//go parseResults(done)
 	<-done
 	endTime := time.Since(mainStart)
-
-	if *showErrsPtr {
-		fmt.Println("No of errors:")
-	}
 
 	fmt.Println("Total time:", endTime)
 	fmt.Printf("TPS: %.2f \n", (float64(totalReqs) / endTime.Seconds()))

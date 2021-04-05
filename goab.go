@@ -1,57 +1,137 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 )
 
 type ReqResult struct {
-	requestTime  float32
+	requestTime  time.Duration
 	errorOccured bool
 }
 
-var requests = make(chan int)
+var resultChan = make(chan ReqResult, 200)
+var requestsChan = make(chan int)
+var reqUrl string
+var totalReqs int
 
-var testResults = make(chan ReqResult)
-
-func httpWorker(wg *sync.WaitGroup, url string) {
+func httpWorker(wg *sync.WaitGroup) {
 	// Makes simple http request using http.get
 	// Measures time for request (find this method) & records in result channel struct
 	// Also record if error occured or not
 
+	for curReq := range requestsChan {
+		//for len(resultChan) <= totalReqs {
+		//fmt.Println("Channel length:", len(resultChan))
+		fmt.Println("Request number:", curReq)
+		var resRecord ReqResult
+		req, reqErr := http.NewRequest("GET", reqUrl, nil)
+		if reqErr != nil {
+			resRecord.errorOccured = true
+			wg.Done()
+		}
+
+		tempStart := time.Now()
+		_, err := http.DefaultTransport.RoundTrip(req)
+		if err != nil {
+			log.Fatal(err)
+		}
+		resRecord.requestTime = time.Since(tempStart)
+
+		fmt.Println("Req time:", resRecord.requestTime)
+
+		resultChan <- resRecord
+
+	}
+	wg.Done()
 }
 
-func allocReqs(int reqs) {
+func parseResults(done chan bool) {
+	time.Sleep(500 * time.Millisecond)
+	var errCount int = 0
+	var latencySum time.Duration
+
+	for reqInf := range resultChan {
+		latencySum += reqInf.requestTime
+		if reqInf.errorOccured {
+			errCount++
+		}
+	}
+
+	avgLatency := latencySum / time.Duration(totalReqs)
+
+	fmt.Println("Avg latency (ms) over", totalReqs, ":", avgLatency)
+	fmt.Println("Total error count:", errCount)
+
+	done <- true
+}
+
+func allocReqs(reqs int) {
 	for i := 0; i < reqs; i++ {
 		reqIndex := i
-		requests <- reqIndex
+		requestsChan <- reqIndex
 	}
-}
+	//println("Allocation complete")
+	close(requestsChan)
+} // Creates channel of 'requests' that httpworkers consume
 
 func main() {
 	concurrentCons := flag.Int("c", 1, "concurrent requests")
 	noOfReqs := flag.Int("n", 1, "requests to make")
 	showErrsPtr := flag.Bool("k", false, "show errors count")
 
-	posArgs := os.Args[1:]
-
 	flag.Parse()
-	if len(posArgs) > 1 {
-		// Throw an error
+
+	posArgs := os.Args[len(os.Args)-1]
+
+	//fmt.Println(posArgs)
+
+	if len(posArgs) < 1 {
+		log.Fatal(errors.New("no URL input"))
 	}
 
-	var hostUrl string = posArgs[0]
+	reqUrl = posArgs
+	totalReqs = *noOfReqs
 
-	allocReqs(*noOfReqs)
+	//println("Allocation started")
+	go allocReqs(*noOfReqs)
 
+	// concRequests := make(chan struct{}, *noOfReqs)
+	// for i := 0; i < *noOfReqs; i++ {
+
+	// }
+
+	done := make(chan bool)
 	var wg sync.WaitGroup
+
+	go parseResults(done)
+
+	mainStart := time.Now()
+
 	for i := 0; i < *concurrentCons; i++ {
 		wg.Add(1)
-		go httpWorker(&wg, hostUrl)
+		go httpWorker(&wg)
 	}
 	wg.Wait()
-	close(testResults)
+	fmt.Println("Closing channel")
+	close(resultChan)
+
+	//go parseResults(done)
+	<-done
+	endTime := time.Since(mainStart)
+
+	if *showErrsPtr {
+		fmt.Println("No of errors:")
+	}
+
+	fmt.Println("Total time:", endTime)
+	fmt.Printf("TPS: %.2f \n", (float64(totalReqs) / endTime.Seconds()))
 
 	// Create a waitgroup with (-c) number of httpworkers
 	// Will need form of counting total requests, use basic struct or array/slice

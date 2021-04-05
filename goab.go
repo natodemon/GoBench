@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 type ReqResult struct {
 	requestTime  time.Duration
 	errorOccured bool
+	reqIndex     int
 }
 
 var resultChan = make(chan ReqResult, 200)
@@ -31,22 +33,26 @@ func httpWorker(wg *sync.WaitGroup) {
 		//fmt.Println("Channel length:", len(resultChan))
 
 		var resRecord ReqResult
-		req, reqErr := http.NewRequest("GET", reqUrl, nil)
+
+		tempStart := time.Now()
+		res, reqErr := http.Get(reqUrl)
 		if reqErr != nil {
 			resRecord.errorOccured = true
 			wg.Done()
 		}
 
-		tempStart := time.Now()
-		_, err := http.DefaultTransport.RoundTrip(req)
-		if err != nil {
-			log.Fatal(err)
+		body, _ := io.ReadAll(res.Body)
+		if body == nil {
+			println("This is pointless")
 		}
+		res.Body.Close()
 		timeEnd := time.Now()
-		resRecord.requestTime = timeEnd.Sub(tempStart)
 
-		fmt.Println("Request number:", curReq)
-		fmt.Println("Req time:", resRecord.requestTime)
+		resRecord.requestTime = timeEnd.Sub(tempStart)
+		resRecord.reqIndex = curReq
+
+		//fmt.Println("Request number:", curReq)
+		//fmt.Println("Req time:", resRecord.requestTime)
 
 		resultChan <- resRecord
 
@@ -122,7 +128,7 @@ func main() {
 		go httpWorker(&wg)
 	}
 	wg.Wait()
-	fmt.Println("Closing channel")
+	//fmt.Println("Closing channel")
 	close(resultChan)
 
 	//go parseResults(done)

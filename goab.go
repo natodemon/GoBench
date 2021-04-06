@@ -50,6 +50,7 @@ func httpWorker(wg *sync.WaitGroup, id int) {
 
 func parseResults(done chan bool, showErrors bool) {
 	var errCount int
+	var maxLatency time.Duration
 	var latencySum time.Duration
 
 	for reqInf := range resultChan {
@@ -57,11 +58,14 @@ func parseResults(done chan bool, showErrors bool) {
 		if reqInf.errorOccured {
 			errCount++
 		}
+		if reqInf.requestTime > maxLatency {
+			maxLatency = reqInf.requestTime
+		}
 	}
 
 	avgLatency := latencySum / time.Duration(totalReqs)
 
-	fmt.Println("Avg latency (ms) over", totalReqs, ":", avgLatency)
+	fmt.Printf("Avg latency over %v requests: %v \nMax latency: %v \n", totalReqs, avgLatency, maxLatency)
 	if showErrors {
 		fmt.Println("Total error count:", errCount)
 	}

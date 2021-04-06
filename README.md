@@ -7,25 +7,29 @@ The project also serves as a way to practice programming in Golang and deploying
 
 This repository is an implementation of the specification outlined here: [jig/bench/README.md](https://github.com/jig/bench)
 
+## Usage
+
+!! Fill this out once all tasks complete !!
+
 ## Task 1: Nginx & Apache Benchmark
 
 ### Architecture & Setup
 
 The system used for testing contains a 4 core Intel i7 (mobile) chip, 8GB of memory and is running Antergos Linux. The web server is a locally hosted instance of the latest Nginx docker image. The Apache Benchmark image used is the one provided ([jig/docker-ab/README.md](https://github.com/jig/docker-ab)) 
 
-The Nginx server hosts a text-only HTML file of around 130kb.
+The Nginx server hosts a simple text-only HTML file of around 3.5kb.
 
 ### Findings
 
-The below table shows the results of running a number of tests with the above setup. All tests were carried out using 100 000 requests (-n 100000) with the only change being to the concurrency level (-c). The CPU usage was also monitored for the duration of each run and will be commented on below. All values except TPS and Conns are in milliseconds.
+The below table shows the results of running a number of tests with the above setup. All tests were carried out using 50 000 requests (-n 50000) with the only change being to the concurrency level (-c). The CPU usage was also monitored for the duration of each run and will be commented on below. All values except TPS and Conns are in milliseconds.
 
-| Conns | TPS  | Avg Latency | Std Dev | Max Latency |
-| :---: | :--: | :---------: | :-----: | :---------: |
-| 1     | 3351 | 0.30        | 0.1     | 7           |
-| 20    | 6545 | 3.00        | 1.6     | 41          |
-| 30    | 6578 | 4.56        | 2.3     | 57          |
-| 50    | 6977 | 7.17        | 3.5     | 109         |
-| 100   | 7345 | 13.6        | 6.8     | 196         |
+| Conns | TPS   | Avg Latency | Std Dev | Max Latency |
+| :---: | :---: | :---------: | :-----: | :---------: |
+| 1     | 4638  | 0.22        | 0.1     | 4           |
+| 20    | 10640 | 1.88        | 1.1     | 29          |
+| 30    | 10491 | 2.86        | 1.5     | 32          |
+| 50    | 10938 | 4.57        | 2.3     | 38          |
+| 100   | 10802 | 9.26        | 5.4     | 131         |
 
 As an initial conclusion we can see that more concurrent connections increases the TPS (Transactions per second) value, but negatively impacts the latency as this also increases. Increasing the concurrency has quickly diminishing returns, 20 and 50 simultaneous connections have TPS values within a few hundred transactions but these transactions take on average more than twice as long. The maximum latency also increases greatly with higher concurrency. This could cause user experience or more serious problems depending on the use case.
 
@@ -41,3 +45,10 @@ The aim of this task was to replicate the essential functionality of Apache Benc
 
 ### Findings & Comparison
 
+| Conns | TPS   | Avg Latency | Max Latency |
+| :---: | :---: | :---------: | :---------: |
+| 1     |       | 0.22        |             |
+| 20    | 10640 | 1.88        |             |
+| 30    | 10491 | 2.86        |             |
+| 50    | 10938 | 4.57        |             |
+| 100   | 10802 | 9.26        |             |

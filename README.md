@@ -57,7 +57,9 @@ As an initial analysis, the program runs almost on par, if slighly less performa
 | 50    | 8443  | 5.91        |    54       |
 | 100   | 7053  | 14.2        |    86       | * Run with 25 000 requests
 
-As can be seen above, the TPS figures begin to drop when using a concurrency level of 50 or more, I believe this is due to reaching the performance limit of the test machine but also potentially inefficiencies in the implementation. Using -c 100 I regularly ran into stability issues and the program often crashed, hence the reduced number of requests. Given that each connection runs as a separate thread, I attempted to test the program on a machine with more cores but was unsuccessful in setting up a test environment.
+As can be seen above, the TPS figures begin to drop when using a concurrency level of 50 or more, I believe this is due to reaching the performance limit of the test machine but also potentially inefficiencies in the implementation. Using -c 100 I regularly ran into stability issues and the program often crashed, hence the reduced number of requests. Given that each connection runs as a separate thread, I attempted to test the program on a machine with more cores but was unsuccessful in setting up a test environment. 
+
+Although I did run into stability issues under certain circumstances, I did monitor for failed requests and for all successful tests the number of errored responses was always zero.
 
 ## Task 3: Go HTTP Server
 

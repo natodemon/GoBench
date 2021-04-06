@@ -43,12 +43,21 @@ Having performed more granular tests, I believe the optimum concurrency (-c) val
 
 The aim of this task was to replicate the essential functionality of Apache Bench with an equivalent program written in Go. This program would perform the same tests as ab and monitor the same parameters to allow for a comparison of the two solutions.
 
-### Findings & Comparison
+Given golang's architecture, namely it's *goroutines* and *channels*, it is relatively easy to make functions asynchronous and execute them concurrently. The approach taken with goab was to implement the http request within a goroutine and thus have the ability to run multiple requests concurrently. Each goroutine runs in it's own thread and runs until the entered number of requests is reached.
+
+### Observations & Comparison
+
+As an initial analysis, the program runs almost on par, if slighly less performant than Apache Bench. The performance follows a similar curve to ab, with the TPS almost doubling as concurrent connections are introduced but quickly flattening out as concurrency is increased. The latency figures are also similar with average latency increasing with concurrency.
 
 | Conns | TPS   | Avg Latency | Max Latency |
 | :---: | :---: | :---------: | :---------: |
-| 1     |       | 0.22        |             |
-| 20    | 10640 | 1.88        |             |
-| 30    | 10491 | 2.86        |             |
-| 50    | 10938 | 4.57        |             |
-| 100   | 10802 | 9.26        |             |
+| 1     | 5024  | 0.20        |    5.9      |
+| 20    | 9785  | 2.04        |    24       |
+| 30    | 9491  | 3.15        |    28       |
+| 50    | 8443  | 5.91        |    54       |
+| 100   | 7053  | 14.2        |    86       | * Run with 25 000 requests
+
+As can be seen above, the TPS figures begin to drop when using a concurrency level of 50 or more, I believe this is due to reaching the performance limit of the test machine but also potentially inefficiencies in the implementation. Using -c 100 I regularly ran into stability issues and the program often crashed, hence the reduced number of requests. Given that each connection runs as a separate thread, I attempted to test the program on a machine with more cores but was unsuccessful in setting up a test environment.
+
+## Task 3: Go HTTP Server
+

@@ -31,8 +31,8 @@ The Nginx server hosts a simple text-only HTML file of around 3.5kb.
 
 The below table shows the results of running a number of tests with the above setup. All tests were carried out using 50 000 requests (-n 50000) with the only change being to the concurrency level (-c). The CPU usage was also monitored for the duration of each run and will be commented on below. All values except TPS and Conns are in milliseconds.
 
-| Conns | TPS   | Avg Latency | Std Dev | Max Latency |
-| :---: | :---: | :---------: | :-----: | :---------: |
+| Conns | TPS   | Avg Latency (ms) | Std Dev (ms) | Max Latency (ms) |
+| :---: | :---: | :--------------: | :----------: | :--------------: |
 | 1     | 4638  | 0.22        | 0.1     | 4           |
 | 20    | 10640 | 1.88        | 1.1     | 29          |
 | 30    | 10491 | 2.86        | 1.5     | 32          |
@@ -57,8 +57,8 @@ Given golang's architecture, namely it's *goroutines* and *channels*, it is rela
 
 As an initial analysis, the program runs almost on par, if slighly less performant than Apache Bench. The performance follows a similar curve to ab, with the TPS almost doubling as concurrent connections are introduced but quickly flattening out as concurrency is increased. The latency figures are also similar with average latency increasing with concurrency.
 
-| Conns | TPS   | Avg Latency | Max Latency |
-| :---: | :---: | :---------: | :---------: |
+| Conns | TPS   | Avg Latency (ms)| Max Latency (ms) |
+| :---: | :---: | :-------------: | :--------------: |
 | 1     | 5024  | 0.20        |    5.9      |
 | 20    | 9785  | 2.04        |    24       |
 | 30    | 9491  | 3.15        |    28       |
@@ -79,8 +79,8 @@ Please see [natodemon/GoHTTP](https://github.com/natodemon/GoHTTP) for the http 
 
 Running tests in the same environment and under the same conditions as the previous tests yields some interesting results. The simple golang http server returns much higher TPS values and lower latency figures than the nginx server previously tested. Predictably, the apache bench program returns better results, however both testing programs have markedly better performance. The below table shows the figures for a couple of test runs of 50 000 requests:
 
-| Conns | TPS goab | TPS ab | Latency goab | Latency ab  |
-| :---: | :------: | :----: | :----------: | :---------: |
+| Conns | TPS goab | TPS ab | Latency goab (ms) | Latency ab (ms) |
+| :---: | :------: | :----: | :--------------: | :--------------: |
 | 1     | 6249     |  8864  | 0.16         |  0.11       |
 | 20    | 14135    | 22415  | 1.41         |  0.89       |
 | 50    | 12564    | 22248  | 3.97         |  2.25       |

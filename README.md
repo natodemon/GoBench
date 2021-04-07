@@ -9,7 +9,15 @@ This repository is an implementation of the specification outlined here: [jig/be
 
 ## Usage
 
-!! Fill this out once all tasks complete !!
+Usage is very similar to Apache Bench, however see below for a few example executions.
+
+    go run goab.go [-k -c=connections -n=requests] url
+    ./goab [-k -c=connections -n=requests] url
+
+Example:
+
+    go run goab.go -k -c=20 -n=50000 http://127.17.0.1:8080
+
 
 ## Task 1: Nginx & Apache Benchmark
 
@@ -63,3 +71,23 @@ Although I did run into stability issues under certain circumstances, I did moni
 
 ## Task 3: Go HTTP Server
 
+## Implementation
+
+Please see [natodemon/GoHTTP](https://github.com/natodemon/GoHTTP) for the http server implementation and usage.
+
+## Observations & Comparison
+
+Running tests in the same environment and under the same conditions as the previous tests yields some interesting results. The simple golang http server returns much higher TPS values and lower latency figures than the nginx server previously tested. Predictably, the apache bench program returns better results, however both testing programs have markedly better performance. The below table shows the figures for a couple of test runs of 50 000 requests:
+
+| Conns | TPS goab | TPS ab | Latency goab | Latency ab  |
+| :---: | :------: | :----: | :----------: | :---------: |
+| 1     | 6249     |  8864  | 0.16         |  0.11       |
+| 20    | 14135    | 22415  | 1.41         |  0.89       |
+| 50    | 12564    | 22248  | 3.97         |  2.25       |
+| 100   | 9760     | 21961  | 10.2         |  4.55       |
+
+The overall performance follows a similar curve to the results using nginx, TPS increases with concurrent requests but quickly reaches a limit. I believe the improved performance is owed to the lower overhead of the Go httpserver, given it's simplicity and single use-case but also largely due to use of Goroutines. Internally, each http request is served within a goroutine and thus is performed on an individual thread. This allows for improved performance, especially on systems with high core counts.
+
+## Conclusion
+
+Overall, this project has been a success in it's goal as an exercise to better understand and gain some experience coding Golang. While the Go alternative to Apache Bench, goab did not prove to be as performant as originally hoped, the go httpserver most definitely proved the advantages of Go's architecture. Given more time, I would go back and attempt to reduce a lot of the overhead involved in the management of the goroutines in goab. Having seen the efficiency of the httpserver, I believe I could eventually improve it's performance and in turn, it's stability issues.

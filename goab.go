@@ -18,8 +18,8 @@ type ReqResult struct {
 	reqIndex     int
 }
 
-var resultChan = make(chan ReqResult, 200)
-var requestsChan = make(chan int, 200)
+var resultChan = make(chan ReqResult, 200) // Channel for request results
+var requestsChan = make(chan int, 200)     // Channel to control number of requests
 var reqUrl string
 var totalReqs int
 
@@ -37,7 +37,7 @@ func httpWorker(wg *sync.WaitGroup, id int) {
 		body, _ := io.ReadAll(res.Body)
 		if body == nil {
 			println("")
-		}
+		} // Ensures request is completed & whole http file downloaded
 		res.Body.Close()
 
 		timeEnd := time.Now()
@@ -46,7 +46,7 @@ func httpWorker(wg *sync.WaitGroup, id int) {
 		resultChan <- resRecord
 	}
 	wg.Done()
-}
+} // Goroutine to execute requests and ensure total number of requests completed
 
 func parseResults(done chan bool, showErrors bool) {
 	var errCount int
@@ -71,7 +71,7 @@ func parseResults(done chan bool, showErrors bool) {
 	}
 
 	done <- true
-}
+} // Receives results from request chan & calcs values for output
 
 func allocReqs(reqs int) {
 	for i := 0; i < reqs; i++ {
@@ -96,6 +96,8 @@ func main() {
 
 	reqUrl = positionalArg
 	totalReqs = *noOfReqs
+
+	println("Running tests, please wait..")
 
 	go allocReqs(*noOfReqs)
 
